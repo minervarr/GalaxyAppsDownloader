@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@android:color/white">
+
+    <!-- App Title -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Samsung APK Downloader"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="32dp"
+        android:textColor="@android:color/black" />
+
+    <!-- Device Model Input -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Device Model (SM-XXXXX):"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/editTextDeviceModel"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="e.g., SM-G950F"
+        android:inputType="text"
+        android:layout_marginBottom="16dp"
+        android:background="@android:drawable/edit_text"
+        android:padding="8dp" />
+
+    <!-- SDK Version Input -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Android SDK Version:"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/editTextSdkVersion"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="e.g., 29"
+        android:inputType="text"
+        android:layout_marginBottom="16dp"
+        android:background="@android:drawable/edit_text"
+        android:padding="8dp" />
+
+    <!-- Package Name Input -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Package Name:"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/editTextPackageName"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="e.g., com.sec.android.app.myfiles"
+        android:inputType="text"
+        android:layout_marginBottom="24dp"
+        android:background="@android:drawable/edit_text"
+        android:padding="8dp" />
+
+    <!-- Download Button -->
+    <Button
+        android:id="@+id/buttonDownload"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="Download APK"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Status Text -->
+    <TextView
+        android:id="@+id/textViewStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="@android:color/black"
+        android:gravity="center"
+        android:layout_marginTop="16dp" />
+
+    <!-- Version Info (Initially Hidden) -->
+    <LinearLayout
+        android:id="@+id/layoutVersionInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="16dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/textViewVersionCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/textViewVersionName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/buttonConfirmDownload"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Confirm Download"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+</LinearLayout>

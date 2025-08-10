@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+        Network Security Configuration for Samsung APK Downloader
+
+        This configuration allows cleartext traffic to Samsung servers
+        which may use HTTP instead of HTTPS for some API endpoints.
+
+        Note: In production, prefer HTTPS-only configurations when possible.
+    -->
+
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Samsung Apps domain for API requests -->
+        <domain includeSubdomains="true">vas.samsungapps.com</domain>
+        <domain includeSubdomains="true">samsungapps.com</domain>
+    </domain-config>
+
+    <!-- Base configuration for all other domains -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- Trust preinstalled CAs -->
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+</network-security-config>

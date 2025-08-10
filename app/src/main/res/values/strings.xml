@@ -1,3 +1,49 @@
 <resources>
-    <string name="app_name">GalaxyAppsDownloader</string>
+    <string name="app_name">Samsung APK Downloader</string>
+
+    <!-- UI Labels -->
+    <string name="device_model_label">Device Model (SM-XXXXX):</string>
+    <string name="sdk_version_label">Android SDK Version:</string>
+    <string name="package_name_label">Package Name:</string>
+    <string name="download_apk_button">Download APK</string>
+    <string name="confirm_download_button">Confirm Download</string>
+
+    <!-- Hints -->
+    <string name="device_model_hint">e.g., SM-G950F</string>
+    <string name="sdk_version_hint">e.g., 29</string>
+    <string name="package_name_hint">e.g., com.sec.android.app.myfiles</string>
+
+    <!-- Status Messages -->
+    <string name="fill_all_fields">Please fill in all fields</string>
+    <string name="fetching_apk_info">Fetching APK information…</string>
+    <string name="apk_info_retrieved">APK information retrieved. Confirm download?</string>
+    <string name="no_download_url">No download URL available</string>
+    <string name="download_started">Download started! Check notifications.</string>
+    <string name="download_failed">Download failed: %1$s</string>
+    <string name="storage_permission_granted">Storage permission granted</string>
+    <string name="storage_permission_required">Storage permission required for downloads</string>
+
+    <!-- Version Info -->
+    <string name="version_code_format">Version Code: %1$s</string>
+    <string name="version_name_format">Version Name: %1$s</string>
+
+    <!-- Download Manager -->
+    <string name="download_title">Samsung APK Download</string>
+    <string name="download_description">Downloading %1$s</string>
+
+    <!-- Error Messages -->
+    <string name="error_prefix">Error: %1$s</string>
+    <string name="failed_prefix">Failed: %1$s</string>
+    <string name="http_error">HTTP %1$d: %2$s</string>
+    <string name="unknown_error">Unknown error occurred</string>
+    <string name="failed_to_parse">Failed to parse response</string>
+    <string name="parsing_error">Error parsing response: %1$s</string>
+    <string name="samsung_server_error">Samsung Servers: %1$s</string>
+    <string name="empty_field_error">%1$s is empty</string>
+
+    <!-- Field Names for Validation -->
+    <string name="download_url_field">Download URL</string>
+    <string name="version_code_field">Version code</string>
+    <string name="version_name_field">Version name</string>
+
 </resources>
