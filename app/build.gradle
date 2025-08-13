@@ -10,10 +10,13 @@ android {
         applicationId "com.example.galaxyappsdownloader"
         minSdk 23
         targetSdk 36
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Vector drawable support for older versions
+        vectorDrawables.useSupportLibrary = true
     }
 
     buildTypes {
@@ -21,18 +24,44 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {
+            debuggable true
+            minifyEnabled false
+        }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+
+    buildFeatures {
+        viewBinding false // Set to true if you want to use view binding
+    }
+
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
 }
 
 dependencies {
-
+    // Core Android libraries
     implementation libs.appcompat
     implementation libs.material
+
+    // Additional useful libraries for Phase 2
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.fragment:fragment:1.6.2'
+    implementation 'androidx.preference:preference:1.2.1'
+
+    // Testing dependencies
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
+
+    // Optional: for future enhancements
+    // implementation 'androidx.work:work-runtime:2.8.1'
+    // implementation 'androidx.room:room-runtime:2.5.0'
 }

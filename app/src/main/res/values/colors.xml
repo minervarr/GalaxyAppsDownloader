@@ -7,4 +7,22 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Additional colors for Phase 2 -->
+    <color name="red_500">#F44336</color>
+    <color name="green_500">#4CAF50</color>
+    <color name="blue_500">#2196F3</color>
+    <color name="orange_500">#FF9800</color>
+
+    <!-- Samsung brand colors -->
+    <color name="samsung_blue">#1428A0</color>
+    <color name="samsung_light_blue">#5B8DEF</color>
+
+    <!-- UI element colors -->
+    <color name="card_background">#FAFAFA</color>
+    <color name="list_divider">#E0E0E0</color>
+    <color name="text_hint">#757575</color>
+    <color name="success_green">#4CAF50</color>
+    <color name="error_red">#F44336</color>
+    <color name="warning_orange">#FF9800</color>
 </resources>

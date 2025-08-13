@@ -1,49 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Samsung APK Downloader</string>
+    <string name="app_name">Galaxy Apps Downloader</string>
 
-    <!-- UI Labels -->
-    <string name="device_model_label">Device Model (SM-XXXXX):</string>
-    <string name="sdk_version_label">Android SDK Version:</string>
-    <string name="package_name_label">Package Name:</string>
-    <string name="download_apk_button">Download APK</string>
-    <string name="confirm_download_button">Confirm Download</string>
+    <!-- Main Activity Strings -->
+    <string name="device_model_label">Device Model</string>
+    <string name="sdk_version_label">Android SDK Version</string>
+    <string name="package_name_label">Package Name</string>
+    <string name="download_location_label">Download Location</string>
+    <string name="download_button">Download APK</string>
+    <string name="status_ready">Ready to download</string>
+    <string name="status_downloading">Downloading...</string>
+    <string name="status_completed">Download completed</string>
 
-    <!-- Hints -->
-    <string name="device_model_hint">e.g., SM-G950F</string>
-    <string name="sdk_version_hint">e.g., 29</string>
-    <string name="package_name_hint">e.g., com.sec.android.app.myfiles</string>
+    <!-- Settings Activity Strings -->
+    <string name="settings_title">Settings</string>
+    <string name="storage_location_title">Download Location</string>
+    <string name="saved_models_title">Saved Device Models</string>
+    <string name="data_management_title">Data Management</string>
+    <string name="about_title">About</string>
 
-    <!-- Status Messages -->
-    <string name="fill_all_fields">Please fill in all fields</string>
-    <string name="fetching_apk_info">Fetching APK information…</string>
-    <string name="apk_info_retrieved">APK information retrieved. Confirm download?</string>
-    <string name="no_download_url">No download URL available</string>
-    <string name="download_started">Download started! Check notifications.</string>
-    <string name="download_failed">Download failed: %1$s</string>
-    <string name="storage_permission_granted">Storage permission granted</string>
-    <string name="storage_permission_required">Storage permission required for downloads</string>
+    <!-- Button Strings -->
+    <string name="change_location">Change Location</string>
+    <string name="add_model">Add Model</string>
+    <string name="reset_models">Reset</string>
+    <string name="clear_all_data">Clear All Data</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 
-    <!-- Version Info -->
-    <string name="version_code_format">Version Code: %1$s</string>
-    <string name="version_name_format">Version Name: %1$s</string>
+    <!-- Validation Messages -->
+    <string name="error_invalid_device_model">Invalid device model format. Use SM-XXXXX</string>
+    <string name="error_invalid_sdk_version">SDK version must be between 19 and 34</string>
+    <string name="error_invalid_package_name">Invalid package name format. Use com.company.app</string>
+    <string name="error_no_network">No network connection available</string>
+    <string name="error_no_storage_location">No download location selected</string>
+    <string name="error_storage_permission">Storage permission is required</string>
 
-    <!-- Download Manager -->
-    <string name="download_title">Samsung APK Download</string>
-    <string name="download_description">Downloading %1$s</string>
+    <!-- Success Messages -->
+    <string name="success_model_added">Device model added successfully</string>
+    <string name="success_download_completed">APK downloaded successfully</string>
+    <string name="success_location_updated">Download location updated</string>
+    <string name="success_data_cleared">All data cleared successfully</string>
 
-    <!-- Error Messages -->
-    <string name="error_prefix">Error: %1$s</string>
-    <string name="failed_prefix">Failed: %1$s</string>
-    <string name="http_error">HTTP %1$d: %2$s</string>
-    <string name="unknown_error">Unknown error occurred</string>
-    <string name="failed_to_parse">Failed to parse response</string>
-    <string name="parsing_error">Error parsing response: %1$s</string>
-    <string name="samsung_server_error">Samsung Servers: %1$s</string>
-    <string name="empty_field_error">%1$s is empty</string>
+    <!-- Dialog Messages -->
+    <string name="dialog_first_launch_title">Welcome to Samsung APK Downloader</string>
+    <string name="dialog_first_launch_message">Please select a download folder to continue. This is required for the app to function.</string>
+    <string name="dialog_reset_models_title">Reset Device Models</string>
+    <string name="dialog_reset_models_message">This will remove all your saved device models and restore the default ones. Continue?</string>
+    <string name="dialog_clear_data_title">Clear All Data</string>
+    <string name="dialog_clear_data_message">This will remove all saved preferences, device models, and settings. You will need to set up the app again. Continue?</string>
+    <string name="dialog_delete_model_title">Delete Device Model</string>
+    <string name="dialog_delete_model_message">Delete %1$s?</string>
 
-    <!-- Field Names for Validation -->
-    <string name="download_url_field">Download URL</string>
-    <string name="version_code_field">Version code</string>
-    <string name="version_name_field">Version name</string>
+    <!-- Help Text -->
+    <string name="help_device_model">Select your Samsung device model or add a new one</string>
+    <string name="help_sdk_version">Android 4.4 (19) to Android 14 (34)</string>
+    <string name="help_package_name">Samsung app package name to download</string>
+    <string name="help_long_press_delete">Long press to delete a model</string>
 
+    <!-- About Information -->
+    <string name="about_version">Samsung APK Downloader v2.0\nPhase 2 Enhanced Version</string>
+    <string name="about_description">Downloads APK files directly from Samsung servers with enhanced features including smart input management, validation, and persistent storage.</string>
+
+    <!-- Accessibility Strings -->
+    <string name="content_desc_folder_icon">Folder icon</string>
+    <string name="content_desc_download_icon">Download icon</string>
+    <string name="content_desc_settings_icon">Settings icon</string>
+    <string name="content_desc_add_icon">Add icon</string>
+    <string name="content_desc_delete_icon">Delete icon</string>
+    <string name="content_desc_refresh_icon">Refresh icon</string>
 </resources>
