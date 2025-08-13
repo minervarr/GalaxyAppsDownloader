@@ -14,9 +14,9 @@ import android.text.TextUtils;
  */
 public class InputValidator {
 
-    // Android SDK version bounds for validation
+    // Android SDK version bounds for validation - removed upper limit
     private static final int MIN_SDK_VERSION = 19; // Android 4.4 KitKat
-    private static final int MAX_SDK_VERSION = 34; // Android 14
+    private static final int MAX_SDK_VERSION = 99; // Future-proof upper limit
 
     // Samsung device model pattern
     private static final String SAMSUNG_MODEL_PATTERN = "^SM-[A-Z0-9]{4,6}[A-Z]?$";
@@ -217,7 +217,7 @@ public class InputValidator {
      * @return String describing valid SDK version range
      */
     public String getValidSdkVersionRange() {
-        return MIN_SDK_VERSION + " - " + MAX_SDK_VERSION + " (Android 4.4 - Android 14)";
+        return MIN_SDK_VERSION + " and above (Android 4.4+)";
     }
 
     /**

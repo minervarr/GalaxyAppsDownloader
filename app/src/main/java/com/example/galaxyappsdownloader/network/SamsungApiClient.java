@@ -1,13 +1,23 @@
 package com.example.galaxyappsdownloader.network;
 
+import android.content.Context;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
+import android.util.Log;
+
+import androidx.documentfile.provider.DocumentFile;
 
 import com.example.galaxyappsdownloader.model.ApkInfo;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.regex.Matcher;
@@ -15,13 +25,14 @@ import java.util.regex.Pattern;
 
 /**
  * Client class for communicating with Samsung's APK download servers.
- * Implements the network layer following Single Responsibility Principle.
- * Handles API communication, response parsing, and file downloading.
+ * Handles API communication, response parsing, and file downloading to custom locations.
  *
  * @author Samsung APK Downloader Team
  * @since Phase 2.0
  */
 public class SamsungApiClient {
+
+    private static final String TAG = "SamsungApiClient";
 
     // Samsung API endpoint URL format (same as Python script)
     private static final String API_URL_FORMAT =
@@ -29,65 +40,65 @@ public class SamsungApiClient {
                     "&mcc=425&mnc=01&csc=ILO&sdkVer=%s&pd=0&systemId=1608665720954" +
                     "&callerId=com.sec.android.app.samsungapps&abiType=64&extuk=0191d6627f38685f";
 
-    // Regex pattern for parsing Samsung API XML response (same as Python script)
+    // Regex pattern for parsing Samsung API XML response
     private static final String RESPONSE_PATTERN =
             "resultCode>([0-9]+)</resultCode>" +
-                    ".*<resultMsg>([^']*)</resultMsg>" +
-                    ".*<downloadURI><!\\[CDATA\\[([^']*)]></downloadURI>" +
-                    ".*<versionCode>([0-9]+)</versionCode>" +
-                    ".*<versionName>([^']*)</versionName>";
+                    ".*?<resultMsg>([^<]*)</resultMsg>" +
+                    ".*?<downloadURI><!\\[CDATA\\[([^\\]]*)]></downloadURI>" +
+                    ".*?<versionCode>([0-9]+)</versionCode>" +
+                    ".*?<versionName>([^<]*)</versionName>";
 
     // HTTP connection timeout settings
-    private static final int CONNECTION_TIMEOUT = 10000; // 10 seconds
+    private static final int CONNECTION_TIMEOUT = 15000; // 15 seconds
     private static final int READ_TIMEOUT = 30000; // 30 seconds
-
-    // Download buffer size
     private static final int BUFFER_SIZE = 8192;
 
+    private final Context context;
+    private String userDownloadPath;
+
     /**
-     * Downloads APK file from Samsung servers.
-     * Performs the complete flow: API call, response parsing, and file download.
+     * Constructor for SamsungApiClient.
+     *
+     * @param context Application context
+     */
+    public SamsungApiClient(Context context) {
+        this.context = context.getApplicationContext();
+    }
+
+    /**
+     * Downloads APK file from Samsung servers to user's chosen location.
      *
      * @param deviceModel The Samsung device model (e.g., "SM-G970F")
      * @param sdkVersion The Android SDK version
      * @param packageName The package name to download
-     * @param downloadPath The local path to save the APK file
+     * @param downloadPath The user's chosen download path URI
      * @param callback Callback interface for progress and completion notifications
      */
     public void downloadApk(String deviceModel, String sdkVersion, String packageName,
                             String downloadPath, DownloadCallback callback) {
 
-        new DownloadTask(deviceModel, sdkVersion, packageName, downloadPath, callback)
-                .execute();
+        this.userDownloadPath = downloadPath;
+        Log.d(TAG, "Starting download process for: " + packageName);
+        Log.d(TAG, "User download path: " + downloadPath);
+
+        new DownloadTask(deviceModel, sdkVersion, packageName, callback).execute();
     }
 
     /**
-     * AsyncTask implementation for handling APK download in background thread.
-     * Prevents blocking the UI thread during network operations.
+     * Main download task that handles both API query and file download.
      */
-    private static class DownloadTask extends AsyncTask<Void, Integer, DownloadResult> {
+    private class DownloadTask extends AsyncTask<Void, Integer, DownloadResult> {
 
         private final String deviceModel;
         private final String sdkVersion;
         private final String packageName;
-        private final String downloadPath;
         private final DownloadCallback callback;
 
-        /**
-         * Constructor for DownloadTask.
-         *
-         * @param deviceModel Samsung device model
-         * @param sdkVersion Android SDK version
-         * @param packageName Package name to download
-         * @param downloadPath Local download path
-         * @param callback Progress callback
-         */
         public DownloadTask(String deviceModel, String sdkVersion, String packageName,
-                            String downloadPath, DownloadCallback callback) {
+                            DownloadCallback callback) {
             this.deviceModel = deviceModel;
             this.sdkVersion = sdkVersion;
             this.packageName = packageName;
-            this.downloadPath = downloadPath;
             this.callback = callback;
         }
 
@@ -100,20 +111,18 @@ public class SamsungApiClient {
                     return DownloadResult.error("Failed to get APK information from Samsung servers");
                 }
 
-                // Notify callback that download is starting
-                if (callback != null) {
-                    callback.onDownloadStarted(apkInfo);
-                }
+                Log.d(TAG, "APK info retrieved: " + apkInfo.toString());
 
                 // Step 2: Download the APK file
                 String localFilePath = downloadApkFile(apkInfo);
                 if (localFilePath != null) {
-                    return DownloadResult.success(localFilePath);
+                    return DownloadResult.success(apkInfo, localFilePath);
                 } else {
                     return DownloadResult.error("Failed to download APK file");
                 }
 
             } catch (Exception e) {
+                Log.e(TAG, "Download failed with exception", e);
                 return DownloadResult.error("Download failed: " + e.getMessage());
             }
         }
@@ -129,6 +138,7 @@ public class SamsungApiClient {
         protected void onPostExecute(DownloadResult result) {
             if (callback != null) {
                 if (result.isSuccess()) {
+                    callback.onDownloadStarted(result.getApkInfo());
                     callback.onDownloadCompleted(result.getFilePath());
                 } else {
                     callback.onDownloadFailed(result.getErrorMessage());
@@ -138,13 +148,12 @@ public class SamsungApiClient {
 
         /**
          * Queries Samsung API for APK information.
-         *
-         * @return ApkInfo object with download details, or null if failed
-         * @throws IOException if network operation fails
          */
         private ApkInfo queryApkInfo() throws IOException {
             String apiUrl = String.format(API_URL_FORMAT, packageName,
                     deviceModel.toUpperCase(), sdkVersion);
+
+            Log.d(TAG, "Samsung API URL: " + apiUrl);
 
             HttpURLConnection connection = null;
             try {
@@ -153,17 +162,20 @@ public class SamsungApiClient {
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(CONNECTION_TIMEOUT);
                 connection.setReadTimeout(READ_TIMEOUT);
+
                 connection.setRequestProperty("User-Agent", "SamsungApkDownloader/2.0");
+                connection.setRequestProperty("Accept", "*/*");
 
                 int responseCode = connection.getResponseCode();
+                Log.d(TAG, "Samsung API response code: " + responseCode);
+
                 if (responseCode != HttpURLConnection.HTTP_OK) {
                     throw new IOException("HTTP error code: " + responseCode);
                 }
 
-                // Read response
                 String response = readInputStream(connection.getInputStream());
+                Log.d(TAG, "Response length: " + response.length());
 
-                // Parse response using regex (same logic as Python script)
                 return parseApiResponse(response);
 
             } finally {
@@ -174,105 +186,124 @@ public class SamsungApiClient {
         }
 
         /**
-         * Parses Samsung API XML response to extract APK information.
-         *
-         * @param xmlResponse The XML response from Samsung API
-         * @return ApkInfo object with parsed data, or null if parsing failed
+         * Parses Samsung API XML response.
          */
         private ApkInfo parseApiResponse(String xmlResponse) {
-            Pattern pattern = Pattern.compile(RESPONSE_PATTERN, Pattern.MULTILINE | Pattern.DOTALL);
-            Matcher matcher = pattern.matcher(xmlResponse);
-
-            if (!matcher.find()) {
-                // Try to extract error message from response
-                Pattern errorPattern = Pattern.compile("resultMsg>(.*)</resultMsg>");
-                Matcher errorMatcher = errorPattern.matcher(xmlResponse);
-                if (errorMatcher.find()) {
-                    String errorMsg = errorMatcher.group(1);
-                    // This will be handled as null return, error logged in calling method
-                }
-                return null;
-            }
-
             try {
-                String resultCode = matcher.group(1);
-                String resultMsg = matcher.group(2);
-                String downloadUri = matcher.group(3);
-                String versionCode = matcher.group(4);
-                String versionName = matcher.group(5);
+                // Extract fields individually for robustness
+                String resultCode = extractXmlField(xmlResponse, "resultCode");
+                String resultMsg = extractXmlField(xmlResponse, "resultMsg");
+                String downloadUri = extractCDataField(xmlResponse, "downloadURI");
+                String versionCode = extractXmlField(xmlResponse, "versionCode");
+                String versionName = extractXmlField(xmlResponse, "versionName");
 
-                // Check if Samsung API returned success
-                if (!"1000".equals(resultCode)) {
-                    // Samsung API returned an error
+                Log.d(TAG, "Parsed response - Code: " + resultCode + ", Message: " + resultMsg);
+
+                // Accept both "1" and "1000" as success codes
+                if (resultCode == null || (!resultCode.equals("1") && !resultCode.equals("1000"))) {
+                    Log.e(TAG, "Samsung API error - Code: " + resultCode + ", Message: " + resultMsg);
                     return null;
                 }
 
-                return new ApkInfo(packageName, versionCode, versionName, downloadUri);
+                if (downloadUri == null || downloadUri.trim().isEmpty()) {
+                    Log.e(TAG, "Download URI is empty");
+                    return null;
+                }
+
+                if (versionCode == null || versionCode.trim().isEmpty()) {
+                    Log.e(TAG, "Version code is empty");
+                    return null;
+                }
+
+                if (versionName == null || versionName.trim().isEmpty()) {
+                    versionName = "Unknown";
+                }
+
+                return new ApkInfo(packageName, versionCode.trim(), versionName.trim(), downloadUri.trim());
 
             } catch (Exception e) {
+                Log.e(TAG, "Error parsing Samsung API response", e);
                 return null;
             }
         }
 
         /**
-         * Downloads the APK file from the provided download URI.
-         *
-         * @param apkInfo APK information containing download URI
-         * @return Local file path of downloaded APK, or null if failed
+         * Downloads the APK file to user's chosen location.
          */
         private String downloadApkFile(ApkInfo apkInfo) {
             HttpURLConnection connection = null;
-            FileOutputStream fileOutput = null;
             InputStream inputStream = null;
+            OutputStream outputStream = null;
 
             try {
+                Log.d(TAG, "Starting APK download from: " + apkInfo.getDownloadUri());
+
                 URL downloadUrl = new URL(apkInfo.getDownloadUri());
                 connection = (HttpURLConnection) downloadUrl.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(CONNECTION_TIMEOUT);
                 connection.setReadTimeout(READ_TIMEOUT);
 
+                connection.setRequestProperty("User-Agent", "SamsungApkDownloader/2.0");
+
                 int responseCode = connection.getResponseCode();
                 if (responseCode != HttpURLConnection.HTTP_OK) {
+                    Log.e(TAG, "Download failed with HTTP code: " + responseCode);
                     return null;
                 }
 
-                // Get file size for progress calculation
                 int fileLength = connection.getContentLength();
+                Log.d(TAG, "File size: " + fileLength + " bytes");
 
-                // Create local file path
-                String fileName = packageName + "-" + apkInfo.getVersionCode() + ".apk";
-                String localFilePath = downloadPath + "/" + fileName;
+                String fileName = apkInfo.getExpectedFilename();
+                String outputPath = createOutputFile(fileName);
 
-                // Setup streams
+                if (outputPath == null) {
+                    Log.e(TAG, "Failed to create output file");
+                    return null;
+                }
+
+                // Open streams
                 inputStream = new BufferedInputStream(connection.getInputStream());
-                fileOutput = new FileOutputStream(localFilePath);
 
-                // Download with progress updates
+                if (outputPath.startsWith("content://")) {
+                    // Use ContentResolver for DocumentFile
+                    outputStream = context.getContentResolver().openOutputStream(Uri.parse(outputPath));
+                } else {
+                    // Use FileOutputStream for regular files
+                    outputStream = new FileOutputStream(outputPath);
+                }
+
+                if (outputStream == null) {
+                    Log.e(TAG, "Failed to open output stream");
+                    return null;
+                }
+
+                // Download with progress
                 byte[] buffer = new byte[BUFFER_SIZE];
                 int bytesRead;
                 int totalBytesRead = 0;
 
                 while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    fileOutput.write(buffer, 0, bytesRead);
+                    outputStream.write(buffer, 0, bytesRead);
                     totalBytesRead += bytesRead;
 
-                    // Update progress
                     if (fileLength > 0) {
                         int progress = (int) ((totalBytesRead * 100L) / fileLength);
                         publishProgress(progress);
                     }
                 }
 
-                fileOutput.flush();
-                return localFilePath;
+                outputStream.flush();
+                Log.d(TAG, "Download completed: " + outputPath);
+                return outputPath;
 
             } catch (Exception e) {
+                Log.e(TAG, "Error downloading APK", e);
                 return null;
             } finally {
-                // Clean up resources
-                if (fileOutput != null) {
-                    try { fileOutput.close(); } catch (IOException ignored) {}
+                if (outputStream != null) {
+                    try { outputStream.close(); } catch (IOException ignored) {}
                 }
                 if (inputStream != null) {
                     try { inputStream.close(); } catch (IOException ignored) {}
@@ -284,49 +315,103 @@ public class SamsungApiClient {
         }
 
         /**
-         * Reads an InputStream and returns its content as a String.
-         *
-         * @param inputStream The InputStream to read
-         * @return String content of the stream
-         * @throws IOException if reading fails
+         * Creates output file in user's chosen location.
+         */
+        private String createOutputFile(String fileName) {
+            try {
+                // Try user's chosen location first
+                if (userDownloadPath != null && !userDownloadPath.isEmpty() &&
+                        userDownloadPath.startsWith("content://")) {
+
+                    Uri treeUri = Uri.parse(userDownloadPath);
+                    DocumentFile documentDir = DocumentFile.fromTreeUri(context, treeUri);
+
+                    if (documentDir != null && documentDir.exists() && documentDir.canWrite()) {
+                        DocumentFile apkFile = documentDir.createFile("application/vnd.android.package-archive", fileName);
+                        if (apkFile != null) {
+                            Log.d(TAG, "Created file in user location: " + apkFile.getUri());
+                            return apkFile.getUri().toString();
+                        }
+                    }
+
+                    Log.w(TAG, "Failed to create file in user location, falling back to Downloads");
+                }
+
+                // Fallback to Downloads folder
+                File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                File outputFile = new File(downloadsDir, fileName);
+                Log.d(TAG, "Using Downloads folder: " + outputFile.getAbsolutePath());
+                return outputFile.getAbsolutePath();
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error creating output file", e);
+                return null;
+            }
+        }
+
+        /**
+         * Reads InputStream to String.
          */
         private String readInputStream(InputStream inputStream) throws IOException {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
             StringBuilder result = new StringBuilder();
-            byte[] buffer = new byte[BUFFER_SIZE];
-            int bytesRead;
+            String line;
 
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                result.append(new String(buffer, 0, bytesRead, "UTF-8"));
+            while ((line = reader.readLine()) != null) {
+                result.append(line).append("\n");
             }
 
             return result.toString();
+        }
+
+        /**
+         * Extracts simple XML field.
+         */
+        private String extractXmlField(String xml, String fieldName) {
+            Pattern pattern = Pattern.compile("<" + fieldName + ">([^<]*)</" + fieldName + ">");
+            Matcher matcher = pattern.matcher(xml);
+            return matcher.find() ? matcher.group(1) : null;
+        }
+
+        /**
+         * Extracts CDATA field.
+         */
+        private String extractCDataField(String xml, String fieldName) {
+            Pattern pattern = Pattern.compile("<" + fieldName + "><!\\[CDATA\\[([^\\]]*)\\]\\]></" + fieldName + ">");
+            Matcher matcher = pattern.matcher(xml);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+            return extractXmlField(xml, fieldName);
         }
     }
 
     /**
      * Result class for download operations.
-     * Encapsulates success/failure state and associated data.
      */
     private static class DownloadResult {
         private final boolean success;
+        private final ApkInfo apkInfo;
         private final String filePath;
         private final String errorMessage;
 
-        private DownloadResult(boolean success, String filePath, String errorMessage) {
+        private DownloadResult(boolean success, ApkInfo apkInfo, String filePath, String errorMessage) {
             this.success = success;
+            this.apkInfo = apkInfo;
             this.filePath = filePath;
             this.errorMessage = errorMessage;
         }
 
-        public static DownloadResult success(String filePath) {
-            return new DownloadResult(true, filePath, null);
+        public static DownloadResult success(ApkInfo apkInfo, String filePath) {
+            return new DownloadResult(true, apkInfo, filePath, null);
         }
 
         public static DownloadResult error(String errorMessage) {
-            return new DownloadResult(false, null, errorMessage);
+            return new DownloadResult(false, null, null, errorMessage);
         }
 
         public boolean isSuccess() { return success; }
+        public ApkInfo getApkInfo() { return apkInfo; }
         public String getFilePath() { return filePath; }
         public String getErrorMessage() { return errorMessage; }
     }

@@ -26,6 +26,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.documentfile.provider.DocumentFile;
 
 import com.example.galaxyappsdownloader.data.PreferencesManager;
 import com.example.galaxyappsdownloader.data.DeviceModelRepository;
@@ -99,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
     private void initializeDependencies() {
         preferencesManager = PreferencesManager.getInstance(this);
         deviceModelRepository = DeviceModelRepository.getInstance(this);
-        samsungApiClient = new SamsungApiClient();
+        samsungApiClient = new SamsungApiClient(this);
         inputValidator = new InputValidator();
     }
 
@@ -137,7 +138,6 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
         });
 
         downloadButton.setOnClickListener(v -> initiateDownload());
-
         storageLocationTextView.setOnClickListener(v -> showFolderSelectionDialog());
     }
 
@@ -170,6 +170,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
     private void setupUserInterface() {
         setupDeviceModelSpinner();
         loadStorageLocationDisplay();
+        loadLastUsedValues();
         updateDownloadButtonState();
     }
 
@@ -195,6 +196,22 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
             @Override
             public void onNothingSelected(android.widget.AdapterView<?> parent) {}
         });
+
+        // Set last used model if available
+        String lastModel = preferencesManager.getLastDeviceModel();
+        if (lastModel != null) {
+            selectModelInSpinner(lastModel);
+        }
+    }
+
+    /**
+     * Loads last used values for convenience.
+     */
+    private void loadLastUsedValues() {
+        String lastSdk = preferencesManager.getLastSdkVersion();
+        if (!lastSdk.isEmpty()) {
+            sdkVersionEditText.setText(lastSdk);
+        }
     }
 
     /**
@@ -207,6 +224,10 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
     private void handleDeviceModelSelection(int position, List<String> savedModels) {
         if (position == savedModels.size() - 1) { // "Add New Model..." selected
             showAddNewModelDialog();
+        } else {
+            // Save the selected model
+            String selectedModel = savedModels.get(position);
+            preferencesManager.setLastDeviceModel(selectedModel);
         }
         updateDownloadButtonState();
     }
@@ -229,12 +250,19 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
                         deviceModelRepository.addModel(newModel);
                         setupDeviceModelSpinner(); // Refresh spinner
                         selectModelInSpinner(newModel);
+                        preferencesManager.setLastDeviceModel(newModel);
+                        Toast.makeText(this, "Model added: " + newModel, Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(this, "Invalid device model format. Use SM-XXXXX",
                                 Toast.LENGTH_SHORT).show();
+                        // Reset spinner to previous selection
+                        setupDeviceModelSpinner();
                     }
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton("Cancel", (dialog, which) -> {
+                    // Reset spinner to previous selection
+                    setupDeviceModelSpinner();
+                })
                 .show();
     }
 
@@ -245,9 +273,11 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
      */
     private void selectModelInSpinner(String model) {
         ArrayAdapter<String> adapter = (ArrayAdapter<String>) deviceModelSpinner.getAdapter();
-        int position = adapter.getPosition(model);
-        if (position >= 0) {
-            deviceModelSpinner.setSelection(position);
+        if (adapter != null) {
+            int position = adapter.getPosition(model);
+            if (position >= 0) {
+                deviceModelSpinner.setSelection(position);
+            }
         }
     }
 
@@ -260,11 +290,12 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
     private void validateSdkVersionRealTime(String sdkVersion) {
         if (TextUtils.isEmpty(sdkVersion)) {
             sdkVersionEditText.setError(null);
+            updateDownloadButtonState();
             return;
         }
 
         if (!inputValidator.isValidSdkVersion(sdkVersion)) {
-            sdkVersionEditText.setError("SDK version must be a number between 19-34");
+            sdkVersionEditText.setError("SDK version must be 19 or higher");
         } else {
             sdkVersionEditText.setError(null);
         }
@@ -289,10 +320,12 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
     private boolean isCurrentInputValid() {
         String selectedModel = getSelectedDeviceModel();
         String sdkVersion = sdkVersionEditText.getText().toString().trim();
+        String packageName = packageNameEditText.getText().toString().trim();
 
         return !TextUtils.isEmpty(selectedModel) &&
                 !selectedModel.equals("Add New Model...") &&
                 inputValidator.isValidSdkVersion(sdkVersion) &&
+                !TextUtils.isEmpty(packageName) &&
                 !TextUtils.isEmpty(preferencesManager.getStorageLocation());
     }
 
@@ -315,12 +348,28 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
             return;
         }
 
-        // Comprehensive validation before download
+        // Get input values
         String deviceModel = getSelectedDeviceModel();
         String sdkVersion = sdkVersionEditText.getText().toString().trim();
         String packageName = packageNameEditText.getText().toString().trim();
 
-        // Validate all inputs
+        // Basic validation
+        if (deviceModel.isEmpty() || deviceModel.equals("Add New Model...")) {
+            showError("Please select a device model");
+            return;
+        }
+
+        if (sdkVersion.isEmpty()) {
+            showError("Please enter SDK version");
+            return;
+        }
+
+        if (packageName.isEmpty()) {
+            showError("Please enter package name");
+            return;
+        }
+
+        // Comprehensive validation before download
         if (!performComplexValidation(deviceModel, sdkVersion, packageName)) {
             return;
         }
@@ -330,6 +379,10 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
             requestStoragePermission();
             return;
         }
+
+        // Save last used values
+        preferencesManager.setLastDeviceModel(deviceModel);
+        preferencesManager.setLastSdkVersion(sdkVersion);
 
         startDownload(deviceModel, sdkVersion, packageName);
     }
@@ -343,6 +396,18 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
      * @return true if all validations pass, false otherwise
      */
     private boolean performComplexValidation(String deviceModel, String sdkVersion, String packageName) {
+        // Device model validation
+        if (!inputValidator.isValidDeviceModel(deviceModel)) {
+            showError("Invalid device model format. Use SM-XXXXX format.");
+            return false;
+        }
+
+        // SDK version validation
+        if (!inputValidator.isValidSdkVersion(sdkVersion)) {
+            showError("Invalid SDK version. Must be 19 or higher.");
+            return false;
+        }
+
         // Package name format validation
         if (!inputValidator.isValidPackageName(packageName)) {
             showError("Invalid package name format. Use com.company.app format.");
@@ -391,6 +456,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
 
         if (!downloading) {
             statusTextView.setText("Ready to download");
+            progressBar.setProgress(0);
         }
     }
 
@@ -412,7 +478,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
         if (!TextUtils.isEmpty(location)) {
             storageLocationTextView.setText("Download Location: " + getDisplayPath(location));
         } else {
-            storageLocationTextView.setText("No download location selected");
+            storageLocationTextView.setText("No download location selected (tap to select)");
         }
     }
 
@@ -426,8 +492,11 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
         try {
             Uri uri = Uri.parse(uriString);
             String path = uri.getPath();
-            if (path != null && path.contains("/tree/")) {
-                return path.substring(path.lastIndexOf("/") + 1);
+            if (path != null && path.contains(":")) {
+                String[] parts = path.split(":");
+                if (parts.length > 1) {
+                    return parts[1];
+                }
             }
             return "Custom folder";
         } catch (Exception e) {
@@ -439,12 +508,21 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
      * Shows folder selection dialog with option to change current location.
      */
     private void showFolderSelectionDialog() {
+        String currentLocation = preferencesManager.getStorageLocation();
+        String message;
+
+        if (currentLocation != null && !currentLocation.isEmpty()) {
+            message = "Current: " + getDisplayPath(currentLocation) +
+                    "\n\nDo you want to change the download location?";
+        } else {
+            message = "No download location selected.\n\nPlease select a folder for downloads.";
+        }
+
         new AlertDialog.Builder(this)
                 .setTitle("Download Location")
-                .setMessage("Current: " + getDisplayPath(preferencesManager.getStorageLocation()) +
-                        "\n\nDo you want to change the download location?")
-                .setPositiveButton("Change Location", (dialog, which) -> requestFolderSelection())
-                .setNegativeButton("Keep Current", null)
+                .setMessage(message)
+                .setPositiveButton("Select Folder", (dialog, which) -> requestFolderSelection())
+                .setNegativeButton(currentLocation != null ? "Keep Current" : "Cancel", null)
                 .show();
     }
 
@@ -459,22 +537,51 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
     }
 
     /**
-     * Checks if app has storage permission.
+     * Checks if app has the necessary storage permissions based on Android version.
      *
      * @return true if permission granted, false otherwise
      */
     private boolean hasStoragePermission() {
-        return ContextCompat.checkSelfPermission(this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            // Android 11+ (API 30+) - Use scoped storage, no special permissions needed for downloads
+            return true;
+        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            // Android 6.0+ (API 23+) - Request WRITE_EXTERNAL_STORAGE
+            return ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        } else {
+            // Below Android 6.0 - permissions granted at install time
+            return true;
+        }
     }
 
     /**
-     * Requests storage permission from user.
+     * Requests storage permission from user based on Android version.
      */
     private void requestStoragePermission() {
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                REQUEST_STORAGE_PERMISSION);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            // Android 11+ - Show explanation as scoped storage is used
+            showStoragePermissionExplanation();
+        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            // Android 6.0+ - Request WRITE_EXTERNAL_STORAGE permission
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_STORAGE_PERMISSION);
+        }
+    }
+
+    /**
+     * Shows explanation for storage access on Android 11+.
+     */
+    private void showStoragePermissionExplanation() {
+        new AlertDialog.Builder(this)
+                .setTitle("Storage Access")
+                .setMessage("This app uses scoped storage to download APK files. " +
+                        "Files will be saved to your selected download location.")
+                .setPositiveButton("OK", (dialog, which) -> {
+                    updateDownloadButtonState();
+                })
+                .show();
     }
 
     // Activity result handling
@@ -512,18 +619,33 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
 
         if (requestCode == REQUEST_STORAGE_PERMISSION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted, retry download if user was trying to download
+                // Permission granted, update UI
                 updateDownloadButtonState();
+                Toast.makeText(this, "Storage permission granted", Toast.LENGTH_SHORT).show();
             } else {
-                showError("Storage permission is required to download APK files.");
+                // Permission denied
+                showStoragePermissionDeniedDialog();
             }
         }
+    }
+
+    /**
+     * Shows dialog when storage permission is denied.
+     */
+    private void showStoragePermissionDeniedDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Permission Required")
+                .setMessage("Storage permission is required to download APK files. " +
+                        "Please grant the permission to continue.")
+                .setPositiveButton("Grant Permission", (dialog, which) -> requestStoragePermission())
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     // Menu handling for settings
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -554,6 +676,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
             } else {
                 progressBar.setProgress(progress);
             }
+            statusTextView.setText("Downloading... " + progress + "%");
         });
     }
 
@@ -561,7 +684,16 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback 
     public void onDownloadCompleted(String filePath) {
         runOnUiThread(() -> {
             setDownloadingState(false);
-            statusTextView.setText("Download completed: " + filePath);
+
+            String displayPath;
+            if (filePath.startsWith("content://")) {
+                displayPath = getDisplayPath(preferencesManager.getStorageLocation()) + "/" +
+                        (currentApkInfo != null ? currentApkInfo.getExpectedFilename() : "APK file");
+            } else {
+                displayPath = filePath;
+            }
+
+            statusTextView.setText("Download completed: " + displayPath);
             Toast.makeText(this, "APK downloaded successfully!", Toast.LENGTH_LONG).show();
         });
     }

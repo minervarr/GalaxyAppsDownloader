@@ -29,13 +29,6 @@ public class DeviceModelRepository {
 
     // Default Samsung device models for initial population
     private static final String[] DEFAULT_MODELS = {
-            "SM-G970F", "SM-G973F", "SM-G975F", // Galaxy S10 series
-            "SM-G980F", "SM-G981B", "SM-G985F", // Galaxy S20 series
-            "SM-G991B", "SM-G996B", "SM-G998B", // Galaxy S21 series
-            "SM-G781B", "SM-G780F",             // Galaxy S20 FE
-            "SM-N970F", "SM-N975F",             // Galaxy Note 10 series
-            "SM-N980F", "SM-N985F", "SM-N986B", // Galaxy Note 20 series
-            "SM-A515F", "SM-A525F", "SM-A715F"  // Galaxy A series
     };
 
     private final SharedPreferences preferences;
@@ -80,7 +73,7 @@ public class DeviceModelRepository {
         List<String> models = new ArrayList<>(modelSet);
 
         // Sort models alphabetically for consistent display
-        models.sort(String::compareTo);
+        Collections.sort(models);
 
         return models;
     }
@@ -135,3 +128,61 @@ public class DeviceModelRepository {
 
         return wasRemoved;
     }
+
+    /**
+     * Initializes the repository with default Samsung device models.
+     * Called during first-time setup to populate the repository with common models.
+     */
+    private void initializeDefaultModels() {
+        Set<String> defaultModelSet = new HashSet<>(Arrays.asList(DEFAULT_MODELS));
+        preferences.edit()
+                .putStringSet(KEY_SAVED_MODELS, defaultModelSet)
+                .apply();
+    }
+
+    /**
+     * Resets saved models to the default set.
+     * Removes all user-added models and restores the original default models.
+     */
+    public void resetToDefaults() {
+        preferences.edit()
+                .putStringSet(KEY_SAVED_MODELS, new HashSet<>(Arrays.asList(DEFAULT_MODELS)))
+                .apply();
+    }
+
+    /**
+     * Clears all saved device models.
+     * Used for data management and reset functionality.
+     */
+    public void clearAllModels() {
+        preferences.edit()
+                .putStringSet(KEY_SAVED_MODELS, new HashSet<>())
+                .apply();
+    }
+
+    /**
+     * Checks if a specific device model is already saved.
+     *
+     * @param deviceModel The device model to check
+     * @return true if model exists in saved models, false otherwise
+     */
+    public boolean hasModel(String deviceModel) {
+        if (deviceModel == null || deviceModel.trim().isEmpty()) {
+            return false;
+        }
+
+        String normalizedModel = deviceModel.trim().toUpperCase();
+        Set<String> currentModels = preferences.getStringSet(KEY_SAVED_MODELS, new HashSet<>());
+        return currentModels.contains(normalizedModel);
+    }
+
+    /**
+     * Gets the total number of saved device models.
+     *
+     * @return Number of saved models
+     */
+    public int getModelCount() {
+        Set<String> modelSet = preferences.getStringSet(KEY_SAVED_MODELS, new HashSet<>());
+        return modelSet.size();
+    }
+}

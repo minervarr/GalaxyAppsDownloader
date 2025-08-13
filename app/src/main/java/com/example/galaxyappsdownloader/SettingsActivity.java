@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -16,7 +15,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 import com.example.galaxyappsdownloader.data.DeviceModelRepository;
 import com.example.galaxyappsdownloader.data.PreferencesManager;
@@ -62,7 +60,7 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        setupToolbar();
+        setupActionBar();
         initializeDependencies();
         initializeViews();
         setupEventListeners();
@@ -70,12 +68,10 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     /**
-     * Sets up the toolbar with back navigation.
+     * Sets up the action bar with back navigation.
+     * Uses the built-in action bar instead of custom toolbar to avoid conflicts.
      */
-    private void setupToolbar() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
+    private void setupActionBar() {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("Settings");
@@ -297,7 +293,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-    // Toolbar back button handling
+    // Action bar back button handling
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {

@@ -1,229 +1,213 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:fillViewport="true">
 
-    <!-- Toolbar -->
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true">
-
-        <LinearLayout
+        <!-- Storage Location Section -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp">
 
-            <!-- Storage Location Section -->
-            <com.google.android.material.card.MaterialCardView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp">
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Download Location"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/storageLocationTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Current: Downloads"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="12dp"
+                    android:textColor="?android:attr/textColorSecondary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/changeStorageButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Change Location"
+                    app:icon="@drawable/ic_folder"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Device Models Section -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Saved Device Models"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Long press to delete a model"
+                    android:textSize="12sp"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:layout_marginBottom="12dp" />
+
+                <ListView
+                    android:id="@+id/savedModelsListView"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:background="@drawable/list_background"
+                    android:divider="@drawable/list_divider"
+                    android:dividerHeight="1dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Download Location"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="8dp" />
-
-                    <TextView
-                        android:id="@+id/storageLocationTextView"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Current: Downloads"
-                        android:textSize="14sp"
-                        android:layout_marginBottom="12dp"
-                        android:textColor="?android:attr/textColorSecondary" />
+                    android:orientation="horizontal"
+                    android:layout_marginTop="12dp">
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/changeStorageButton"
-                        android:layout_width="match_parent"
+                        android:id="@+id/addModelButton"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Change Location"
-                        app:icon="@drawable/ic_folder"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:text="Add Model"
+                        app:icon="@drawable/ic_add"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/resetModelsButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:text="Reset"
+                        app:icon="@drawable/ic_refresh"
                         style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
                 </LinearLayout>
 
-            </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
 
-            <!-- Device Models Section -->
-            <com.google.android.material.card.MaterialCardView
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Data Management Section -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp">
+                android:orientation="vertical"
+                android:padding="16dp">
 
-                <LinearLayout
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:text="Data Management"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Saved Device Models"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="8dp" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Clear all app data and reset to initial state"
+                    android:textSize="14sp"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:layout_marginBottom="12dp" />
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Long press to delete a model"
-                        android:textSize="12sp"
-                        android:textColor="?android:attr/textColorSecondary"
-                        android:layout_marginBottom="12dp" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/clearDataButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Clear All Data"
+                    android:textColor="@color/white"
+                    app:icon="@drawable/ic_delete"
+                    app:backgroundTint="@color/red_500"
+                    style="@style/Widget.MaterialComponents.Button" />
 
-                    <ListView
-                        android:id="@+id/savedModelsListView"
-                        android:layout_width="match_parent"
-                        android:layout_height="200dp"
-                        android:background="@drawable/list_background"
-                        android:divider="@drawable/list_divider"
-                        android:dividerHeight="1dp" />
+            </LinearLayout>
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginTop="12dp">
+        </com.google.android.material.card.MaterialCardView>
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/addModelButton"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="8dp"
-                            android:text="Add Model"
-                            app:icon="@drawable/ic_add"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+        <!-- App Information Section -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp">
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/resetModelsButton"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="8dp"
-                            android:text="Reset"
-                            app:icon="@drawable/ic_refresh"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Data Management Section -->
-            <com.google.android.material.card.MaterialCardView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp">
+                android:orientation="vertical"
+                android:padding="16dp">
 
-                <LinearLayout
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:text="About"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Data Management"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="8dp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Clear all app data and reset to initial state"
-                        android:textSize="14sp"
-                        android:textColor="?android:attr/textColorSecondary"
-                        android:layout_marginBottom="12dp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/clearDataButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Clear All Data"
-                        android:textColor="@color/white"
-                        app:icon="@drawable/ic_delete"
-                        app:backgroundTint="@color/red_500"
-                        style="@style/Widget.MaterialComponents.Button" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- App Information Section -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:text="Samsung APK Downloader v2.0\nPhase 2 Enhanced Version"
+                    android:textSize="14sp"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:layout_marginBottom="8dp" />
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="About"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="8dp" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Downloads APK files directly from Samsung servers with enhanced features including smart input management, validation, and persistent storage."
+                    android:textSize="12sp"
+                    android:textColor="?android:attr/textColorTertiary" />
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Samsung APK Downloader v2.0\nPhase 2 Enhanced Version"
-                        android:textSize="14sp"
-                        android:textColor="?android:attr/textColorSecondary"
-                        android:layout_marginBottom="8dp" />
+            </LinearLayout>
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Downloads APK files directly from Samsung servers with enhanced features including smart input management, validation, and persistent storage."
-                        android:textSize="12sp"
-                        android:textColor="?android:attr/textColorTertiary" />
+        </com.google.android.material.card.MaterialCardView>
 
-                </LinearLayout>
+    </LinearLayout>
 
-            </com.google.android.material.card.MaterialCardView>
-
-        </LinearLayout>
-
-    </ScrollView>
-
-</LinearLayout>
+</ScrollView>

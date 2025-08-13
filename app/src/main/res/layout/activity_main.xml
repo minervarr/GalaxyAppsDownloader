@@ -88,7 +88,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="SDK Version (19-34)"
+                    android:hint="SDK Version (19+)"
                     app:errorEnabled="true">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -103,7 +103,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Android 4.4 (19) to Android 14 (34)"
+                    android:text="Android 4.4 (19) and above"
                     android:textSize="12sp"
                     android:textColor="?android:attr/textColorSecondary"
                     android:layout_marginTop="4dp" />
